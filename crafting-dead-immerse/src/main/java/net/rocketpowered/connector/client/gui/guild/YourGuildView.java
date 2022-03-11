@@ -18,8 +18,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Consumer;
 import javax.annotation.Nullable;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.bson.types.ObjectId;
 import com.craftingdead.immerse.client.gui.screen.Theme;
 import com.craftingdead.immerse.client.gui.view.ParentView;
@@ -45,8 +43,6 @@ import reactor.core.scheduler.Schedulers;
 public class YourGuildView extends ParentView {
 
   public static final Component TITLE = new TranslatableComponent("view.guild.your_guild");
-
-  private static final Logger logger = LogManager.getLogger();
 
   private final ParentView informationView;
 
@@ -210,7 +206,7 @@ public class YourGuildView extends ParentView {
       controlsView.forceAddChild(this.renameButton);
     }
 
-    if (this.guild.isOwner(gateway.getUser())) {
+    if (this.guild.isOwner(gateway.user())) {
       controlsView.forceAddChild(this.transferButton);
       controlsView.forceAddChild(this.deleteButton);
     } else {
@@ -221,7 +217,7 @@ public class YourGuildView extends ParentView {
   }
 
   private void updateMember(GameClientGateway gateway, GuildMemberPayload member) {
-    if (member.user().equals(gateway.getUser())) {
+    if (member.user().equals(gateway.user())) {
       this.selfMember = member;
       this.updateInformation(gateway);
     }
@@ -250,7 +246,6 @@ public class YourGuildView extends ParentView {
                     && event.guildId().equals(this.guild.id()))
                 .publishOn(Schedulers.fromExecutor(this.minecraft))
                 .doOnNext(event -> this.updateMember(api, event.guildMember()))))
-        .doOnError(logger::error)
         .subscribeOn(Schedulers.boundedElastic())
         .subscribe();
   }

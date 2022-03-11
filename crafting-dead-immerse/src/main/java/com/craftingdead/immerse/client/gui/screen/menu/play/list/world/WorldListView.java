@@ -19,8 +19,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import javax.annotation.Nullable;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import com.mojang.logging.LogUtils;
+import org.slf4j.Logger;
 import org.jdesktop.core.animation.timing.Animator;
 import org.jdesktop.core.animation.timing.KeyFrames;
 import com.craftingdead.immerse.client.gui.screen.Theme;
@@ -34,7 +34,7 @@ import net.minecraft.world.level.storage.LevelSummary;
 
 public class WorldListView extends ParentView {
 
-  private static final Logger logger = LogManager.getLogger();
+  private static final Logger logger = LogUtils.getLogger();
 
   private final ParentView listView;
 
@@ -60,7 +60,7 @@ public class WorldListView extends ParentView {
     var createButton = Theme.createBlueButton(
         new TranslatableComponent("view.world_list.button.create"),
         () -> this.getScreen()
-            .keepOpenAndSetScreen(CreateWorldScreen.create(this.getScreen())));
+            .keepOpenAndSetScreen(CreateWorldScreen.createFresh(this.getScreen())));
 
     this.editButton = Theme.createBlueButton(
         new TranslatableComponent("view.world_list.button.edit"),
@@ -117,11 +117,12 @@ public class WorldListView extends ParentView {
 
   @Override
   public boolean mouseClicked(double mouseX, double mouseY, int button) {
-    if (super.mouseClicked(mouseX, mouseY, button)) {
-      return true;
+    var result = super.mouseClicked(mouseX, mouseY, button);
+    // Might have joined a world/server so we are removed
+    if (this.isAdded()) {
+      this.updateSelected();
     }
-    this.updateSelected();
-    return false;
+    return result;
   }
 
   protected void updateSelected() {
